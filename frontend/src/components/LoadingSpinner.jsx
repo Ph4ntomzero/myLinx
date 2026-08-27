@@ -1,17 +1,13 @@
- const LoadingSpinner = () => {
-   return (
-     <div className="flex items-center justify-center min-h-screen bg-gray-900">
-       <div className="relative"></div>
-        <div className="w-20 h-20 border-emerald-200 border-2 rounded-full">
-        <div className="w-20 h-20 border-emerald-500 border-t-2 animate-spin rounded-full
-        absolute left-0 top-0">
-        <div className="sr-only">Loading</div>
+const LoadingSpinner = () => {
+	return (
+		<div className='flex min-h-screen items-center justify-center bg-gray-900' role='status'>
+			<div className='relative h-20 w-20'>
+				<div className='h-20 w-20 rounded-full border-2 border-emerald-200' />
+				<div className='absolute inset-0 h-20 w-20 animate-spin rounded-full border-2 border-transparent border-t-emerald-500' />
+			</div>
+			<span className='sr-only'>Loading</span>
+		</div>
+	);
+};
 
-        </div>
-
-        </div>
-     </div>
-   );
- }
- 
- export default LoadingSpinner
+export default LoadingSpinner;
