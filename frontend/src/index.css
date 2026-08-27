@@ -219,3 +219,179 @@ select {
 		top: 62rem;
 	}
 }
+
+/* A brief storefront preview keeps page-load wait states visually connected to the app. */
+.loading-screen {
+	position: relative;
+	isolation: isolate;
+	overflow: hidden;
+	min-height: 100svh;
+	background:
+		linear-gradient(rgba(132, 201, 159, 0.025) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(132, 201, 159, 0.02) 1px, transparent 1px),
+		#031b14;
+	background-size: 52px 52px;
+}
+
+.loading-preview {
+	position: relative;
+	z-index: 1;
+	animation: loading-preview-arrive 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.loading-orb {
+	position: absolute;
+	z-index: 0;
+	width: 32rem;
+	height: 32rem;
+	border-radius: 9999px;
+	background: #19b56d;
+	filter: blur(90px);
+	opacity: 0.16;
+	animation: loading-orb-float 5s ease-in-out infinite alternate;
+}
+
+.loading-orb-left {
+	top: -15rem;
+	left: -14rem;
+}
+
+.loading-orb-right {
+	right: -15rem;
+	bottom: -16rem;
+	background: #075537;
+	animation-delay: -2.5s;
+}
+
+.loading-shimmer {
+	background: linear-gradient(100deg, rgba(148, 217, 177, 0.08) 30%, rgba(172, 255, 206, 0.28) 50%, rgba(148, 217, 177, 0.08) 70%);
+	background-size: 220% 100%;
+	animation: loading-shimmer 1.8s ease-in-out infinite;
+}
+
+.loading-product-card {
+	background: linear-gradient(145deg, rgba(12, 69, 48, 0.84), rgba(3, 27, 20, 0.96));
+	box-shadow: 0 0 45px rgba(16, 185, 129, 0.2);
+}
+
+.loading-product-shape {
+	position: absolute;
+	border: 1px solid rgba(167, 243, 208, 0.16);
+	border-radius: 9999px;
+	background: linear-gradient(145deg, rgba(45, 212, 143, 0.2), rgba(6, 65, 45, 0.12));
+	filter: blur(1px);
+	animation: loading-product-drift 4s ease-in-out infinite alternate;
+}
+
+.loading-product-shape-one {
+	top: 12%;
+	left: 12%;
+	width: 43%;
+	aspect-ratio: 1;
+}
+
+.loading-product-shape-two {
+	right: 10%;
+	top: 27%;
+	width: 35%;
+	aspect-ratio: 1;
+	animation-delay: -2s;
+}
+
+.loading-feature {
+	border: 1px solid rgba(135, 189, 157, 0.18);
+	background: rgba(9, 43, 32, 0.45);
+	backdrop-filter: blur(12px);
+}
+
+.loading-status {
+	position: absolute;
+	z-index: 2;
+	top: 50%;
+	left: 50%;
+	width: min(18rem, calc(100% - 2.5rem));
+	padding: 1.5rem;
+	border: 1px solid rgba(167, 243, 208, 0.2);
+	border-radius: 1.25rem;
+	background: rgba(3, 27, 20, 0.72);
+	box-shadow: 0 24px 70px rgba(0, 20, 12, 0.4);
+	backdrop-filter: blur(18px);
+	transform: translate(-50%, -50%);
+	text-align: center;
+	animation: loading-status-arrive 700ms 80ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.loading-mark {
+	position: relative;
+	width: 3rem;
+	height: 3rem;
+	margin: 0 auto;
+}
+
+.loading-ring,
+.loading-core {
+	position: absolute;
+	border-radius: 9999px;
+}
+
+.loading-ring {
+	inset: 0;
+	border: 2px solid rgba(167, 243, 208, 0.28);
+	border-top-color: #34d399;
+	border-right-color: #34d399;
+	animation: loading-spin 900ms linear infinite;
+}
+
+.loading-core {
+	inset: 0.85rem;
+	background: #6ee7b7;
+	box-shadow: 0 0 0 0 rgba(110, 231, 183, 0.55);
+	animation: loading-pulse 1.7s ease-out infinite;
+}
+
+@keyframes loading-preview-arrive {
+	from { opacity: 0; transform: scale(0.97); }
+	to { opacity: 0.68; transform: scale(1); }
+}
+
+@keyframes loading-status-arrive {
+	from { opacity: 0; transform: translate(-50%, calc(-50% + 1rem)) scale(0.94); }
+	to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes loading-shimmer {
+	from { background-position: 100% 0; }
+	to { background-position: -120% 0; }
+}
+
+@keyframes loading-spin {
+	to { transform: rotate(360deg); }
+}
+
+@keyframes loading-pulse {
+	0% { box-shadow: 0 0 0 0 rgba(110, 231, 183, 0.55); transform: scale(0.92); }
+	70% { box-shadow: 0 0 0 0.85rem rgba(110, 231, 183, 0); transform: scale(1); }
+	100% { box-shadow: 0 0 0 0 rgba(110, 231, 183, 0); transform: scale(0.92); }
+}
+
+@keyframes loading-orb-float {
+	from { transform: translate3d(0, 0, 0) scale(0.94); }
+	to { transform: translate3d(3rem, 2rem, 0) scale(1.08); }
+}
+
+@keyframes loading-product-drift {
+	from { transform: translate3d(-0.75rem, 0.5rem, 0) scale(0.94); }
+	to { transform: translate3d(1rem, -1rem, 0) scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.loading-preview,
+	.loading-orb,
+	.loading-shimmer,
+	.loading-product-shape,
+	.loading-status,
+	.loading-ring,
+	.loading-core {
+		animation: none;
+	}
+}
