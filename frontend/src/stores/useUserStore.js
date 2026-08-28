@@ -19,7 +19,7 @@ export const useUserStore = create((set, get) => ({
 
 		try {
 			const response = await axios.post("/auth/signup", { name, email, password });
-			set({ user: null, loading: false });
+			set({ user: response.data.user || null, loading: false });
 			toast.success(response.data.message);
 			return response.data;
 		} catch (error) {

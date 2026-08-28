@@ -12,6 +12,8 @@ const GENERIC_RESEND_MESSAGE =
   "If an unverified account exists for that email, a verification link has been sent.";
 
 const normalizeEmail = (email) => String(email ?? "").trim().toLowerCase();
+const isEmailVerificationEnabled = () =>
+  process.env.EMAIL_VERIFICATION_ENABLED === "true";
 
 const createVerificationToken = () => {
   const rawToken = crypto.randomBytes(32).toString("hex");
@@ -85,6 +87,25 @@ export const signup = async (req, res) => {
 
     if (userExists) {
       return res.status(400).json({ message: "User already exists" });
+    }
+
+    if (!isEmailVerificationEnabled()) {
+      const user = await User.create({
+        name,
+        email,
+        password,
+        isVerified: true,
+      });
+      const { accessToken, refreshToken } = generateTokens(user._id);
+      await storeRefreshToken(user._id, refreshToken);
+      setCookies(res, accessToken, refreshToken);
+
+      return res.status(201).json({
+        success: true,
+        requiresVerification: false,
+        user: publicUser(user),
+        message: "Account created successfully.",
+      });
     }
 
     const { rawToken, hashedToken, expiresAt } = createVerificationToken();
@@ -169,6 +190,14 @@ export const verifyEmail = async (req, res) => {
 };
 
 export const resendVerificationEmail = async (req, res) => {
+  if (!isEmailVerificationEnabled()) {
+    return res.json({
+      success: true,
+      verificationDisabled: true,
+      message: "Email verification is temporarily disabled. You can log in normally.",
+    });
+  }
+
   const email = normalizeEmail(req.body?.email);
 
   if (!EMAIL_PATTERN.test(email)) {
@@ -232,7 +261,19 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    if (user.isVerified !== true) {
+    if (user.isVerified !== true && !isEmailVerificationEnabled()) {
+      await User.updateOne(
+        { _id: user._id },
+        {
+          $set: { isVerified: true },
+          $unset: {
+            verificationToken: 1,
+            verificationTokenExpiresAt: 1,
+          },
+        },
+      );
+      user.isVerified = true;
+    } else if (user.isVerified !== true) {
       // Read the stored shape directly because Mongoose can apply schema defaults
       // while hydrating legacy records that do not contain this field.
       const storedVerificationState = await User.collection.findOne(
