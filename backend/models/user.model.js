@@ -38,6 +38,21 @@ const userSchema = new mongoose.Schema(
       enum: ["customer", "admin"],
       default: "customer",
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationToken: {
+      type: String,
+      default: undefined,
+      index: true,
+      select: false,
+    },
+    verificationTokenExpiresAt: {
+      type: Date,
+      default: undefined,
+      select: false,
+    },
   },
   // Add timestamps to automatically manage createdAt and updatedAt fields
   {

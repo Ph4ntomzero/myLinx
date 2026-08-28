@@ -1,38 +1,75 @@
 import { create } from "zustand";
-import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
+
+import axios from "../lib/axios";
 
 export const useUserStore = create((set, get) => ({
 	user: null,
 	loading: false,
 	checkingAuth: true,
+	resendingVerification: false,
 
 	signup: async ({ name, email, password, confirmPassword }) => {
+		if (password !== confirmPassword) {
+			toast.error("Passwords do not match");
+			return null;
+		}
+
 		set({ loading: true });
 
-		if (password !== confirmPassword) {
-			set({ loading: false });
-			return toast.error("Passwords do not match");
-		}
-
 		try {
-			const res = await axios.post("/auth/signup", { name, email, password });
-			set({ user: res.data.user, loading: false });
+			const response = await axios.post("/auth/signup", { name, email, password });
+			set({ user: null, loading: false });
+			toast.success(response.data.message);
+			return response.data;
 		} catch (error) {
+			const responseData = error.response?.data;
 			set({ loading: false });
-			toast.error(error.response?.data?.message || "An error occurred");
+			toast.error(responseData?.message || "An error occurred");
+
+			// The account exists even when SMTP delivery failed, so let the signup
+			// page continue to the resend flow instead of trapping the customer.
+			return responseData?.requiresVerification ? responseData : null;
 		}
 	},
+
 	login: async (email, password) => {
 		set({ loading: true });
 
 		try {
-			const res = await axios.post("/auth/login", { email, password });
-
-			set({ user: res.data.user, loading: false });
+			const response = await axios.post("/auth/login", { email, password });
+			set({ user: response.data.user, loading: false });
+			return response.data;
 		} catch (error) {
+			const responseData = error.response?.data;
 			set({ loading: false });
-			toast.error(error.response?.data?.message || "An error occurred");
+			toast.error(responseData?.message || "An error occurred");
+			return responseData?.requiresVerification ? responseData : null;
+		}
+	},
+
+	verifyEmail: async (token) => {
+		const response = await axios.get("/auth/verify-email", {
+			params: { token },
+		});
+		return response.data;
+	},
+
+	resendVerification: async (email) => {
+		set({ resendingVerification: true });
+
+		try {
+			const response = await axios.post("/auth/resend-verification", { email });
+			toast.success(response.data.message);
+			return true;
+		} catch (error) {
+			toast.error(
+				error.response?.data?.message ||
+					"Unable to send a verification email right now.",
+			);
+			return false;
+		} finally {
+			set({ resendingVerification: false });
 		}
 	},
 
@@ -55,8 +92,8 @@ export const useUserStore = create((set, get) => ({
 			set({ checkingAuth: false, user: null });
 		}
 	},
+
 	refreshToken: async () => {
-		// Prevent multiple simultaneous refresh attempts
 		if (get().checkingAuth) return;
 
 		set({ checkingAuth: true });
@@ -69,43 +106,34 @@ export const useUserStore = create((set, get) => ({
 			throw error;
 		}
 	},
-
-  
-
 }));
 
-
-///TO DO implement the axios inrerceptors for access token
-
-// Axios interceptor for token refresh
 let refreshPromise = null;
 
 axios.interceptors.response.use(
 	(response) => response,
 	async (error) => {
 		const originalRequest = error.config;
-		if (error.response?.status === 401 && !originalRequest._retry) {
+		if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
 			originalRequest._retry = true;
 
 			try {
-				// If a refresh is already in progress, wait for it to complete
 				if (refreshPromise) {
 					await refreshPromise;
 					return axios(originalRequest);
 				}
 
-				// Start a new refresh process
 				refreshPromise = useUserStore.getState().refreshToken();
 				await refreshPromise;
 				refreshPromise = null;
 
 				return axios(originalRequest);
 			} catch (refreshError) {
-				// If refresh fails, redirect to login or handle as needed
+				refreshPromise = null;
 				useUserStore.getState().logout();
 				return Promise.reject(refreshError);
 			}
 		}
 		return Promise.reject(error);
-	}
+	},
 );

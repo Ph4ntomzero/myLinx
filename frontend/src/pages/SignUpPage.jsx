@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { UserPlus, Mail, Lock, User, ArrowRight, Loader } from "lucide-react";
 import { motion } from "framer-motion";
 import { useUserStore } from "../stores/useUserStore";
 
 
 const SignUpPage = () => {
+
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -16,9 +18,18 @@ const SignUpPage = () => {
 
   const {signup, loading} = useUserStore()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    signup(formData);
+    const result = await signup(formData);
+
+    if (result?.requiresVerification) {
+      navigate("/check-email", {
+        state: {
+          email: formData.email.trim().toLowerCase(),
+          emailDeliveryFailed: result.emailDeliveryFailed === true,
+        },
+      });
+    }
   };
   return (
     <div className="page-shell min-h-screen px-5 py-12 sm:px-6">
@@ -106,6 +117,7 @@ const SignUpPage = () => {
                 <input
                   type="password"
                   required
+                  minLength={6}
                   id="password"
                   className="focus:ring-emerald-500 focus:border-emerald-500
                    block w-full pl-10 px-3 py-2 bg-gray-700 border-gray-600 rounded-md shadow-sm
@@ -132,6 +144,7 @@ const SignUpPage = () => {
                 <input
                   type="password"
                   required
+                  minLength={6}
                   id="confirmPassword"
                   className="focus:ring-emerald-500 focus:border-emerald-500
                    block w-full pl-10 px-3 py-2 bg-gray-700 border-gray-600 rounded-md shadow-sm

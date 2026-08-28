@@ -18,6 +18,8 @@ import PurchaseCancelPage from "./pages/PurchaseCancelPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
 import MyOrdersPage from "./pages/MyOrdersPage";
 import StoreFooter from "./components/StoreFooter";
+import CheckEmailPage from "./pages/CheckEmailPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
 
 function App() {
 	const { user, checkAuth, checkingAuth } = useUserStore();
@@ -42,6 +44,8 @@ function App() {
 					<Route path='/' element={<HomePage />} />
 					<Route path='/signup' element={!user ? <SignUpPage /> : <Navigate to='/' />} />
 					<Route path='/login' element={!user ? <LoginPage /> : <Navigate to='/' />} />
+					<Route path='/check-email' element={!user ? <CheckEmailPage /> : <Navigate to='/' />} />
+					<Route path='/verify-email' element={!user ? <VerifyEmailPage /> : <Navigate to='/' />} />
 					<Route
 						path='/secret-dashboard'
 						element={user?.role === "admin" ? <AdminPage /> : <Navigate to='/login' />}

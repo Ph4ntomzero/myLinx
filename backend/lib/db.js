@@ -39,5 +39,4 @@ export const connectDB = async () => {
     console.error("Error connecting to MongoDB:", error.message);
     process.exit(1);
   }
-} 
-//mongodb+srv://<db_username>:E5leoFeManeMXwhq@cluster0.4ujms1o.mongodb.net/?appName=Cluster0:E5leoFeManeMXwhq@cluster0.4ujms1o.mongodb.net/?appName=Cluster0
+};

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Mail, Lock, ArrowRight, Loader, LogIn } from "lucide-react";
+import { Mail, Lock, ArrowRight, Loader, LogIn, MailWarning } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from 'react';
 import { useUserStore } from '../stores/useUserStore';
@@ -9,13 +9,19 @@ import { useUserStore } from '../stores/useUserStore';
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [requiresVerification, setRequiresVerification] = useState(false);
 
-  const {login, loading} = useUserStore();
+  const {login, loading, resendVerification, resendingVerification} = useUserStore();
 
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    login(email, password);
+    const result = await login(email, password);
+    setRequiresVerification(result?.requiresVerification === true);
+  };
+
+  const handleResend = async () => {
+    await resendVerification(email.trim().toLowerCase());
   };
 
   return  ( 
@@ -59,9 +65,10 @@ const LoginPage = () => {
                     className="site-input block w-full rounded-xl py-2.5 pl-10 pr-3 placeholder-gray-400 sm:text-sm"
                     placeholder="you@example.com"
                     value={email}
-                    onChange={(e) =>
-                      setEmail(e.target.value)
-                    }
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setRequiresVerification(false);
+                    }}
                   />
                 </div>
               </div>
@@ -112,6 +119,27 @@ const LoginPage = () => {
                 )}
               </button>
             </form>
+
+            {requiresVerification && (
+              <div className="mt-5 rounded-xl border border-amber-300/25 bg-amber-300/10 p-4" role="alert">
+                <div className="flex gap-3">
+                  <MailWarning className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" aria-hidden="true" />
+                  <div>
+                    <p className="text-sm font-bold text-amber-100">Your email has not been verified yet.</p>
+                    <p className="mt-1 text-sm leading-6 text-slate-300">Open the link in your inbox, or request a fresh one below.</p>
+                    <button
+                      type="button"
+                      onClick={handleResend}
+                      disabled={resendingVerification}
+                      className="mt-3 inline-flex items-center font-bold text-emerald-300 transition hover:text-emerald-200 disabled:opacity-60"
+                    >
+                      {resendingVerification && <Loader className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
+                      Resend verification email
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
   
             <p className="mt-8 text-center text-sm text-gray-400">
               Not a Member ?{" "}
